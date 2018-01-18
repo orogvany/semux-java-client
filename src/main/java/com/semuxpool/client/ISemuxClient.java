@@ -7,11 +7,11 @@ import com.semuxpool.client.api.Info;
 import com.semuxpool.client.api.Peer;
 import com.semuxpool.client.api.SemuxException;
 import com.semuxpool.client.api.Transaction;
+import com.semuxpool.client.api.TransactionLimits;
 
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 /**
  */
@@ -59,7 +59,7 @@ public interface ISemuxClient
 
     String createAccount() throws IOException, SemuxException;
 
-    String transfer(long amountToSend, String from, String to, long fee, String data) throws IOException, SemuxException;
+    String transfer(long amountToSend, String from, String to, long fee, byte[] data) throws IOException, SemuxException;
 
     String registerDelegate(String fromAddress, long fee, String delegateName) throws IOException, SemuxException;
 
@@ -69,6 +69,8 @@ public interface ISemuxClient
 
     List<String> getAllAccounts() throws IOException, SemuxException;
 
-
     Map<String, Long> getVotesForBlock(String delegate, long blockNum) throws IOException, SemuxException;
+
+    TransactionLimits getTransactionLimits(String type) throws IOException, SemuxException;
+
 }

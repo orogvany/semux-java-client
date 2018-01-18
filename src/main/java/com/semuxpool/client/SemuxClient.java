@@ -8,6 +8,7 @@ import com.semuxpool.client.api.Info;
 import com.semuxpool.client.api.Peer;
 import com.semuxpool.client.api.SemuxException;
 import com.semuxpool.client.api.Transaction;
+import com.semuxpool.client.api.TransactionLimits;
 import com.semuxpool.client.api.response.AccountResponse;
 import com.semuxpool.client.api.response.BlockResponse;
 import com.semuxpool.client.api.response.DelegateResponse;
@@ -18,6 +19,7 @@ import com.semuxpool.client.api.response.PeersResponse;
 import com.semuxpool.client.api.response.SemuxResponse;
 import com.semuxpool.client.api.response.StringResponse;
 import com.semuxpool.client.api.response.StringsResponse;
+import com.semuxpool.client.api.response.TransactionLimitsResponse;
 import com.semuxpool.client.api.response.TransactionResponse;
 import com.semuxpool.client.api.response.TransactionsResponse;
 import com.semuxpool.client.api.response.VotesResponse;
@@ -195,10 +197,11 @@ public class SemuxClient implements ISemuxClient
     }
 
     @Override
-    public String transfer(long amountToSend, String from, String to, long fee, String data) throws IOException, SemuxException
+    public String transfer(long amountToSend, String from, String to, long fee, byte[] data) throws IOException, SemuxException
     {
         if (mockPayments)
         {
+            logger.info("Skipping payment to " + to + " as we are in debug mode");
             return "mockPayment";
         }
         else
@@ -206,7 +209,7 @@ public class SemuxClient implements ISemuxClient
             String url = "transfer?from=" + from + "&to=" + to + "&fee=" + fee + "&value=" + amountToSend;
             if (data != null)
             {
-                url += "&data=" + data;
+                url += "&data=" + Hex.encodeHexString(data);
             }
             return makeRequest(url, StringResponse.class);
         }
@@ -276,6 +279,12 @@ public class SemuxClient implements ISemuxClient
             }
         }
         return votes;
+    }
+
+    @Override
+    public TransactionLimits getTransactionLimits(String type) throws IOException, SemuxException
+    {
+        return makeRequest("get_transaction_limits?type=" + type, TransactionLimitsResponse.class);
     }
 
     private class SimpleResponseHandler implements ResponseHandler<String>
