@@ -51,7 +51,7 @@ public interface ISemuxClient
 
     List<String> getValidators() throws IOException, SemuxException;
 
-    Map<String,Long> getVotes(String delegate, String voterAddress) throws IOException, SemuxException;
+    Long getVotes(String delegate, String voterAddress) throws IOException, SemuxException;
 
     Map<String, Long> getVotes(String delegate) throws IOException, SemuxException;
 

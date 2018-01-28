@@ -131,9 +131,9 @@ public class SemuxClient implements ISemuxClient
     }
 
     @Override
-    public Map<String,Long> getVotes(String delegate, String voterAddress) throws IOException, SemuxException
+    public Long getVotes(String delegate, String voterAddress) throws IOException, SemuxException
     {
-        return makeRequest("get_vote?delegate=" + delegate + "&voter=" + voterAddress, VotesResponse.class);
+        return makeRequest("get_vote?delegate=" + delegate + "&voter=" + voterAddress, LongResponse.class);
     }
 
     @Override
