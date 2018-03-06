@@ -14,6 +14,8 @@ public class Transaction
     private long timestamp;
     private String date;
     private String data;
+    private Long blockNumber;
+
 
     public String getHash()
     {
@@ -113,5 +115,15 @@ public class Transaction
     public void setData(String data)
     {
         this.data = data;
+    }
+
+    public Long getBlockNumber()
+    {
+        return blockNumber;
+    }
+
+    public void setBlockNumber(Long blockNumber)
+    {
+        this.blockNumber = blockNumber;
     }
 }

@@ -8,6 +8,7 @@ public class Account
     private Long available;
     private Long locked;
     private long nonce;
+    private Long transactionCount;
 
     public String getAddress()
     {
@@ -47,5 +48,15 @@ public class Account
     public void setNonce(long nonce)
     {
         this.nonce = nonce;
+    }
+
+    public Long getTransactionCount()
+    {
+        return transactionCount;
+    }
+
+    public void setTransactionCount(Long transactionCount)
+    {
+        this.transactionCount = transactionCount;
     }
 }

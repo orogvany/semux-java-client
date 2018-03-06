@@ -1,5 +1,7 @@
 package com.semuxpool.client.api;
 
+import java.util.List;
+
 /**
  */
 public class Peer
@@ -10,6 +12,7 @@ public class Peer
     private String clientId;
     private String peerId;
     private int latestBlockNumber;
+    private List<String> capabilities;
 
     private int latency;
 
@@ -81,5 +84,15 @@ public class Peer
     public void setLatency(int latency)
     {
         this.latency = latency;
+    }
+
+    public List<String> getCapabilities()
+    {
+        return capabilities;
+    }
+
+    public void setCapabilities(List<String> capabilities)
+    {
+        this.capabilities = capabilities;
     }
 }
