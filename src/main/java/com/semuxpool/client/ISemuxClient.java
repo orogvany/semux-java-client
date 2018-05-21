@@ -8,6 +8,9 @@ import com.semuxpool.client.api.Peer;
 import com.semuxpool.client.api.SemuxException;
 import com.semuxpool.client.api.Transaction;
 import com.semuxpool.client.api.TransactionLimits;
+import com.semuxpool.client.api.response.SignMessageResponse;
+import com.semuxpool.client.api.response.SignRawTransactionResponse;
+import com.semuxpool.client.api.response.VerifyMessageResponse;
 
 import java.io.IOException;
 import java.util.List;
@@ -40,6 +43,14 @@ public interface ISemuxClient
     List<Transaction> getAccountTransactions(String address, int from, int to) throws IOException, SemuxException;
 
     Transaction getTransaction(String hash) throws IOException, SemuxException;
+
+    String signRawTransaction(String address, String raw) throws IOException, SemuxException;
+
+    String signMessage(String address, String message) throws IOException, SemuxException;
+
+    String verifyMessage(String address, String message, String signature) throws IOException, SemuxException;
+
+    void composeRawTransaction(String network, String type, long fee, int nonce, String to, long value, long timestamp, byte[] data) throws IOException, SemuxException;
 
     void sendTransaction(String raw) throws IOException, SemuxException;
 

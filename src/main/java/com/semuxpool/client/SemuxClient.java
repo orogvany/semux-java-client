@@ -9,20 +9,7 @@ import com.semuxpool.client.api.Peer;
 import com.semuxpool.client.api.SemuxException;
 import com.semuxpool.client.api.Transaction;
 import com.semuxpool.client.api.TransactionLimits;
-import com.semuxpool.client.api.response.AccountResponse;
-import com.semuxpool.client.api.response.BlockResponse;
-import com.semuxpool.client.api.response.DelegateResponse;
-import com.semuxpool.client.api.response.DelegatesResponse;
-import com.semuxpool.client.api.response.InfoResponse;
-import com.semuxpool.client.api.response.LongResponse;
-import com.semuxpool.client.api.response.PeersResponse;
-import com.semuxpool.client.api.response.SemuxResponse;
-import com.semuxpool.client.api.response.StringResponse;
-import com.semuxpool.client.api.response.StringsResponse;
-import com.semuxpool.client.api.response.TransactionLimitsResponse;
-import com.semuxpool.client.api.response.TransactionResponse;
-import com.semuxpool.client.api.response.TransactionsResponse;
-import com.semuxpool.client.api.response.VotesResponse;
+import com.semuxpool.client.api.response.*;
 import org.apache.commons.codec.binary.Hex;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
@@ -32,23 +19,23 @@ import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.CredentialsProvider;
 import org.apache.http.client.ResponseHandler;
 import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.methods.HttpPost;
 import org.apache.http.impl.client.BasicCredentialsProvider;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.util.EntityUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
 import java.io.IOException;
-import java.math.BigInteger;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 /**
  */
-public class SemuxClient implements ISemuxClient
-{
+public class SemuxClient implements ISemuxClient {
     private static final Logger logger = LoggerFactory.getLogger(SemuxClient.class);
     private String host;
     private boolean mockPayments = false;
@@ -56,8 +43,7 @@ public class SemuxClient implements ISemuxClient
     private CloseableHttpClient httpclient;
     private ObjectMapper objectMapper = new ObjectMapper();
 
-    public SemuxClient(String host, int port, String user, String password)
-    {
+    public SemuxClient(String host, int port, String user, String password) {
         this.host = host;
         this.port = port;
 
@@ -66,213 +52,195 @@ public class SemuxClient implements ISemuxClient
         provider.setCredentials(AuthScope.ANY, credentials);
 
         httpclient = HttpClientBuilder.create()
-            .setDefaultCredentialsProvider(provider)
-            .build();
+                .setDefaultCredentialsProvider(provider)
+                .build();
     }
 
     @Override
-    public List<Transaction> getAccountTransactions(String address, int from, int to) throws IOException, SemuxException
-    {
-        return makeRequest("get_account_transactions?address=" + address + "&from=" + from + "&to=" + to, TransactionsResponse.class);
+    public List<Transaction> getAccountTransactions(String address, int from, int to) throws IOException, SemuxException {
+        return makeRequest("account/transactions?address=" + address + "&from=" + from + "&to=" + to, TransactionsResponse.class);
     }
 
     @Override
-    public Transaction getTransaction(String hash) throws IOException, SemuxException
-    {
-        return makeRequest("get_transaction?hash=" + hash, TransactionResponse.class);
+    public Transaction getTransaction(String hash) throws IOException, SemuxException {
+        return makeRequest("transaction?hash=" + hash, TransactionResponse.class);
     }
 
     @Override
-    public void sendTransaction(String raw) throws IOException, SemuxException
-    {
-        makeRequest("send_transaction?raw=" + raw, null);
+    public String signRawTransaction(String address, String raw) throws IOException, SemuxException {
+        return makeRequest("sign-raw-transaction?address=" + address + "&raw=" + raw, SignRawTransactionResponse.class);
     }
 
     @Override
-    public Map<String, Long> getVotes(String delegate) throws IOException, SemuxException
-    {
-        return makeRequest("get_votes?delegate=" + delegate, VotesResponse.class);
+    public String signMessage(String address, String message) throws IOException, SemuxException {
+        return makePostRequest("sign-message?address=" + address + "&message=" + message, SignMessageResponse.class);
     }
 
     @Override
-    public List<String> listAccounts() throws IOException, SemuxException
-    {
-        return makeRequest("list_accounts", StringsResponse.class);
+    public String verifyMessage(String address, String message, String signature) throws IOException, SemuxException {
+        return makeRequest("verify-message?address=" + address + "&message=" + message, VerifyMessageResponse.class);
     }
 
     @Override
-    public String createAccount() throws IOException, SemuxException
-    {
-        return makeRequest("create_account", StringResponse.class);
+    public void composeRawTransaction(String network, String type, long fee, int nonce, String to, long value, long timestamp, byte[] data) throws IOException, SemuxException {
+//        makePostRequest("transaction/raw?raw=" + raw, null);
+        throw new NotImplementedException();
     }
 
     @Override
-    public Account getAccount(String address) throws IOException, SemuxException
-    {
-        return makeRequest("get_account?address=" + address, AccountResponse.class);
+    public void sendTransaction(String raw) throws IOException, SemuxException {
+        makePostRequest("transaction/raw?raw=" + raw, null);
     }
 
     @Override
-    public Delegate getDelegate(String delegate) throws IOException, SemuxException
-    {
-        return makeRequest("get_delegate?address=" + delegate, DelegateResponse.class);
+    public Map<String, Long> getVotes(String delegate) throws IOException, SemuxException {
+        return makeRequest("votes?delegate=" + delegate, VotesResponse.class);
     }
 
     @Override
-    public List<Delegate> getDelegates() throws IOException, SemuxException
-    {
-        return makeRequest("get_delegates", DelegatesResponse.class);
+    public List<String> listAccounts() throws IOException, SemuxException {
+        return makeRequest("accounts", StringsResponse.class);
     }
 
     @Override
-    public List<String> getValidators() throws IOException, SemuxException
-    {
-        return makeRequest("get_validators", StringsResponse.class);
+    public String createAccount() throws IOException, SemuxException {
+        return makePostRequest("account", StringResponse.class);
     }
 
     @Override
-    public Long getVotes(String delegate, String voterAddress) throws IOException, SemuxException
-    {
-        return makeRequest("get_vote?delegate=" + delegate + "&voter=" + voterAddress, LongResponse.class);
+    public Account getAccount(String address) throws IOException, SemuxException {
+        return makeRequest("account?address=" + address, AccountResponse.class);
     }
 
     @Override
-    public Info getInfo() throws IOException, SemuxException
-    {
-        return makeRequest("get_info", InfoResponse.class);
+    public Delegate getDelegate(String delegate) throws IOException, SemuxException {
+        return makeRequest("delegate?address=" + delegate, DelegateResponse.class);
     }
 
     @Override
-    public List<Peer> getPeers() throws IOException, SemuxException
-    {
-        return makeRequest("get_peers", PeersResponse.class);
+    public List<Delegate> getDelegates() throws IOException, SemuxException {
+        return makeRequest("delegates", DelegatesResponse.class);
     }
 
     @Override
-    public void addNode(String node, int port) throws IOException, SemuxException
-    {
-        makeRequest("add_node?node=" + node + ":" + port, null);
+    public List<String> getValidators() throws IOException, SemuxException {
+        return makeRequest("validators", StringsResponse.class);
     }
 
     @Override
-    public void addToBlacklist(String ipAddress) throws IOException, SemuxException
-    {
-        makeRequest("add_to_blacklist?ip=" + ipAddress, null);
+    public Long getVotes(String delegate, String voterAddress) throws IOException, SemuxException {
+        return makeRequest("vote?delegate=" + delegate + "&voter=" + voterAddress, LongResponse.class);
     }
 
     @Override
-    public void addToWhitelist(String ipAddress) throws IOException, SemuxException
-    {
-        makeRequest("add_to_whitelist?ip=" + ipAddress, null);
+    public Info getInfo() throws IOException, SemuxException {
+        return makeRequest("info", InfoResponse.class);
     }
 
     @Override
-    public Long getLatestBlockNumber() throws IOException, SemuxException
-    {
-        return makeRequest("get_latest_block_number", LongResponse.class);
+    public List<Peer> getPeers() throws IOException, SemuxException {
+        return makeRequest("peers", PeersResponse.class);
     }
 
     @Override
-    public Block getLatestBlock() throws IOException, SemuxException
-    {
-        return makeRequest("get_latest_block", BlockResponse.class);
+    public void addNode(String node, int port) throws IOException, SemuxException {
+        makePostRequest("node?node=" + node + ":" + port, null);
     }
 
     @Override
-    public Block getBlock(long blockNum) throws IOException, SemuxException
-    {
-        return makeRequest("get_block?number=" + blockNum, BlockResponse.class);
+    public void addToBlacklist(String ipAddress) throws IOException, SemuxException {
+        makeRequest("blacklist?ip=" + ipAddress, null);
     }
 
     @Override
-    public Block getBlock(String hash) throws IOException, SemuxException
-    {
-        return makeRequest("get_block?hash=" + hash, BlockResponse.class);
+    public void addToWhitelist(String ipAddress) throws IOException, SemuxException {
+        makeRequest("whitelist?ip=" + ipAddress, null);
     }
 
     @Override
-    public List<Transaction> getPendingTransactions() throws IOException, SemuxException
-    {
-        return makeRequest("get_pending_transactions", TransactionsResponse.class);
+    public Long getLatestBlockNumber() throws IOException, SemuxException {
+        return makeRequest("latest-block-number", LongResponse.class);
     }
 
     @Override
-    public String transfer(long amountToSend, String from, String to, long fee, byte[] data) throws IOException, SemuxException
-    {
-        if (mockPayments)
-        {
+    public Block getLatestBlock() throws IOException, SemuxException {
+        return makeRequest("latest-block", BlockResponse.class);
+    }
+
+    @Override
+    public Block getBlock(long blockNum) throws IOException, SemuxException {
+        return makeRequest("block-by-number?number=" + blockNum, BlockResponse.class);
+    }
+
+    @Override
+    public Block getBlock(String hash) throws IOException, SemuxException {
+        return makeRequest("block-by-hash?hash=" + hash, BlockResponse.class);
+    }
+
+    @Override
+    public List<Transaction> getPendingTransactions() throws IOException, SemuxException {
+        return makeRequest("pending-transactions", TransactionsResponse.class);
+    }
+
+    @Override
+    public String transfer(long amountToSend, String from, String to, long fee, byte[] data) throws IOException, SemuxException {
+        if (mockPayments) {
             logger.info("Skipping payment to " + to + " as we are in debug mode");
             return "mockPayment";
-        }
-        else
-        {
-            String url = "transfer?from=" + from + "&to=" + to + "&fee=" + fee + "&value=" + amountToSend;
-            if (data != null)
-            {
+        } else {
+            String url = "transaction/transfer?from=" + from + "&to=" + to + "&fee=" + fee + "&value=" + amountToSend;
+            if (data != null) {
                 url += "&data=" + Hex.encodeHexString(data);
             }
-            return makeRequest(url, StringResponse.class);
+            return makePostRequest(url, StringResponse.class);
         }
     }
 
     @Override
-    public String registerDelegate(String address, long fee, String delegateName) throws IOException, SemuxException
-    {
+    public String registerDelegate(String address, long fee, String delegateName) throws IOException, SemuxException {
         String hexDelegateName = Hex.encodeHexString(delegateName.getBytes());
-        return makeRequest("delegate?from=" + address + "&fee=" + fee + "&data=" + hexDelegateName, StringResponse.class);
+        return makePostRequest("transaction/delegate?from=" + address + "&fee=" + fee + "&data=" + hexDelegateName, StringResponse.class);
     }
 
     @Override
-    public String vote(String from, String to, long value, long fee) throws IOException, SemuxException
-    {
-        return makeRequest("vote?from=" + from + "&fee=" + fee + "&to=" + to + "&value=" + value, StringResponse.class);
+    public String vote(String from, String to, long value, long fee) throws IOException, SemuxException {
+        return makePostRequest("transaction/vote?from=" + from + "&fee=" + fee + "&to=" + to + "&value=" + value, StringResponse.class);
     }
 
     @Override
-    public String unvote(String from, String to, long value, long fee) throws IOException, SemuxException
-    {
-        return makeRequest("unvote?from=" + from + "&fee=" + fee + "&to=" + to + "&value=" + value, StringResponse.class);
+    public String unvote(String from, String to, long value, long fee) throws IOException, SemuxException {
+        return makePostRequest("transaction/unvote?from=" + from + "&fee=" + fee + "&to=" + to + "&value=" + value, StringResponse.class);
     }
 
     @Override
-    public List<String> getAllAccounts() throws IOException, SemuxException
-    {
-        return makeRequest("list_accounts", StringsResponse.class);
+    public List<String> getAllAccounts() throws IOException, SemuxException {
+        return makeRequest("accounts", StringsResponse.class);
     }
 
     @Override
-    public Map<String, Long> getVotesForBlock(String delegate, long blockNum) throws IOException, SemuxException
-    {
+    public Map<String, Long> getVotesForBlock(String delegate, long blockNum) throws IOException, SemuxException {
         List<Transaction> transactions = getAccountTransactions(delegate, 0, Integer.MAX_VALUE);
         //tally them up to blockNum
         Block block = getBlock(blockNum);
 
         Map<String, Long> votes = new HashMap<>();
-        for (Transaction transaction : transactions)
-        {
-            if (transaction.getTimestamp() > block.getTimestamp())
-            {
+        for (Transaction transaction : transactions) {
+            if (transaction.getTimestamp() > block.getTimestamp()) {
                 break;
             }
             long valueToAdd = 0;
-            if (transaction.getType().equals("VOTE"))
-            {
+            if (transaction.getType().equals("VOTE")) {
                 valueToAdd = transaction.getValue();
-            }
-            else if (transaction.getType().equals("UNVOTE"))
-            {
+            } else if (transaction.getType().equals("UNVOTE")) {
                 valueToAdd = 0 - transaction.getValue();
             }
-            if (valueToAdd != 0)
-            {
+            if (valueToAdd != 0) {
                 Long currentVal = votes.get(transaction.getFrom());
-                if (currentVal == null)
-                {
+                if (currentVal == null) {
                     currentVal = 0l;
                 }
                 currentVal += valueToAdd;
-                if (currentVal < 0)
-                {
+                if (currentVal < 0) {
                     logger.error("Negative vote amount from " + transaction.getFrom());
                 }
                 votes.put(transaction.getFrom(), currentVal);
@@ -282,32 +250,25 @@ public class SemuxClient implements ISemuxClient
     }
 
     @Override
-    public TransactionLimits getTransactionLimits(String type) throws IOException, SemuxException
-    {
-        return makeRequest("get_transaction_limits?type=" + type, TransactionLimitsResponse.class);
+    public TransactionLimits getTransactionLimits(String type) throws IOException, SemuxException {
+        return makeRequest("transaction-limits?type=" + type, TransactionLimitsResponse.class);
     }
 
-    private class SimpleResponseHandler implements ResponseHandler<String>
-    {
+    private class SimpleResponseHandler implements ResponseHandler<String> {
         @Override
         public String handleResponse(
-            final HttpResponse response) throws IOException
-        {
+                final HttpResponse response) throws IOException {
             int status = response.getStatusLine().getStatusCode();
-            if (status >= 200 && status < 300)
-            {
+            if (status >= 200 && status < 300) {
                 HttpEntity entity = response.getEntity();
                 return entity != null ? EntityUtils.toString(entity) : null;
-            }
-            else
-            {
+            } else {
                 throw new ClientProtocolException("Unexpected response status: " + status);
             }
         }
     }
 
-    public boolean isMockPayments()
-    {
+    public boolean isMockPayments() {
         return mockPayments;
     }
 
@@ -316,42 +277,58 @@ public class SemuxClient implements ISemuxClient
      *
      * @param mockPayments mockPayments
      */
-    public void setMockPayments(boolean mockPayments)
-    {
+    public void setMockPayments(boolean mockPayments) {
         this.mockPayments = mockPayments;
     }
 
-    private <T> T makeRequest(String path, Class<? extends SemuxResponse<T>> responseClass) throws IOException, SemuxException
-    {
-        HttpGet httpGet = new HttpGet("http://" + host + ":" + port + "/" + path);
+    private <T> T makeRequest(String path, Class<? extends SemuxResponse<T>> responseClass) throws IOException, SemuxException {
+        HttpGet httpGet = new HttpGet("http://" + host + ":" + port + "/v2.0.0/" + path);
 
+        logger.info(httpGet.getURI().toString());
         ResponseHandler<String> responseHandler = new SimpleResponseHandler();
         String responseString = httpclient.execute(httpGet, responseHandler);
 
         //handle unknown type
-        if (responseClass == null)
-        {
+        if (responseClass == null) {
             SemuxResponse response = objectMapper.readValue(responseString, SemuxResponse.class);
-            if (!response.isSuccess())
-            {
+            if (!response.isSuccess()) {
                 throw new SemuxException(response.getMessage());
-            }
-            else
-            {
+            } else {
                 return null;
             }
-        }
-        else
-        {
+        } else {
             SemuxResponse<T> response = objectMapper.readValue(responseString, responseClass);
-            if (response.isSuccess())
-            {
+            if (response.isSuccess()) {
                 return response.getResult();
-            }
-            else
-            {
+            } else {
                 throw new SemuxException(response.getMessage());
             }
         }
     }
+
+
+    private <T> T makePostRequest(String path, Class<? extends SemuxResponse<T>> responseClass) throws IOException, SemuxException {
+        HttpPost httpPost = new HttpPost("http://" + host + ":" + port + "/v2.0.0/" + path);
+
+        ResponseHandler<String> responseHandler = new SimpleResponseHandler();
+        String responseString = httpclient.execute(httpPost, responseHandler);
+
+        //handle unknown type
+        if (responseClass == null) {
+            SemuxResponse response = objectMapper.readValue(responseString, SemuxResponse.class);
+            if (!response.isSuccess()) {
+                throw new SemuxException(response.getMessage());
+            } else {
+                return null;
+            }
+        } else {
+            SemuxResponse<T> response = objectMapper.readValue(responseString, responseClass);
+            if (response.isSuccess()) {
+                return response.getResult();
+            } else {
+                throw new SemuxException(response.getMessage());
+            }
+        }
+    }
+
 }
