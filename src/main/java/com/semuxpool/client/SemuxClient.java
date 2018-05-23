@@ -283,7 +283,7 @@ public class SemuxClient implements ISemuxClient {
     private <T> T makeRequest(String path, Class<? extends SemuxResponse<T>> responseClass) throws IOException, SemuxException {
         HttpGet httpGet = new HttpGet("http://" + host + ":" + port + "/v2.0.0/" + path);
 
-        logger.info(httpGet.getURI().toString());
+        logger.debug(httpGet.getURI().toString());
         ResponseHandler<String> responseHandler = new SimpleResponseHandler();
         String responseString = httpclient.execute(httpGet, responseHandler);
 
