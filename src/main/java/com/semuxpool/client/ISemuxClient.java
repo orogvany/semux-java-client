@@ -70,7 +70,7 @@ public interface ISemuxClient
 
     String createAccount() throws IOException, SemuxException;
 
-    String transfer(long amountToSend, String from, String to, long fee, byte[] data) throws IOException, SemuxException;
+    String transfer(long amountToSend, String from, String to, Long fee, byte[] data) throws IOException, SemuxException;
 
     String registerDelegate(String fromAddress, long fee, String delegateName) throws IOException, SemuxException;
 

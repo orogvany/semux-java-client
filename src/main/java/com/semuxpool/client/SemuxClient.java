@@ -183,12 +183,15 @@ public class SemuxClient implements ISemuxClient {
     }
 
     @Override
-    public String transfer(long amountToSend, String from, String to, long fee, byte[] data) throws IOException, SemuxException {
+    public String transfer(long amountToSend, String from, String to, Long fee, byte[] data) throws IOException, SemuxException {
         if (mockPayments) {
             logger.info("Skipping payment to " + to + " as we are in debug mode");
             return "mockPayment";
         } else {
-            String url = "transaction/transfer?from=" + from + "&to=" + to + "&fee=" + fee + "&value=" + amountToSend;
+            String url = "transaction/transfer?from=" + from + "&to=" + to + "&value=" + amountToSend;
+            if (fee != null) {
+                url += "&fee=" + fee;
+            }
             if (data != null) {
                 url += "&data=" + Hex.encodeHexString(data);
             }
@@ -259,12 +262,8 @@ public class SemuxClient implements ISemuxClient {
         public String handleResponse(
                 final HttpResponse response) throws IOException {
             int status = response.getStatusLine().getStatusCode();
-            if (status >= 200 && status < 300) {
-                HttpEntity entity = response.getEntity();
-                return entity != null ? EntityUtils.toString(entity) : null;
-            } else {
-                throw new ClientProtocolException("Unexpected response status: " + status);
-            }
+            HttpEntity entity = response.getEntity();
+            return entity != null ? EntityUtils.toString(entity) : null;
         }
     }
 
