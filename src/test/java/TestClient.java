@@ -30,5 +30,6 @@ public class TestClient {
         client.getPeers();
         client.getPendingTransactions();
         client.getTransaction(transaction);
+        client.getValidators();
     }
 }

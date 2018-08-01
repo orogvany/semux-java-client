@@ -1,7 +1,10 @@
 package com.semuxpool.client.api;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
 /**
  */
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class Info
 {
     private int activePeers;

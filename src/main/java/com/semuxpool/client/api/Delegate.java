@@ -1,7 +1,10 @@
 package com.semuxpool.client.api;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
 /**
  */
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class Delegate
 {
     private String address;
@@ -11,6 +14,7 @@ public class Delegate
     private Long blocksForged;
     private Long turnsHit;
     private Long turnsMissed;
+    private Boolean validator;
 
     public String getAddress()
     {
@@ -80,5 +84,13 @@ public class Delegate
     public void setTurnsMissed(Long turnsMissed)
     {
         this.turnsMissed = turnsMissed;
+    }
+
+    public Boolean getValidator() {
+        return validator;
+    }
+
+    public void setValidator(Boolean validator) {
+        this.validator = validator;
     }
 }
