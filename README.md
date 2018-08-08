@@ -2,5 +2,11 @@
 Semux Java API Client
 
 A java implementation of a client for [Semux](https://github.com/semuxproject/semux) a java blockchain.
-
-It's not currently in any maven repository, so you'll have to build it locally.  It will be eventually.
+For maven use you can use
+```
+<dependency>
+    <groupId>com.github.orogvany</groupId>
+    <artifactId>semux-java-client</artifactId>
+    <version>8daf7acfa0a247034d015ea47e042508fe38e5f9</version>
+</dependency>
+```
