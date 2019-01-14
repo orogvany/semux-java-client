@@ -9,17 +9,33 @@ import com.semuxpool.client.api.Peer;
 import com.semuxpool.client.api.SemuxException;
 import com.semuxpool.client.api.Transaction;
 import com.semuxpool.client.api.TransactionLimits;
-import com.semuxpool.client.api.response.*;
+import com.semuxpool.client.api.response.AccountResponse;
+import com.semuxpool.client.api.response.BlockResponse;
+import com.semuxpool.client.api.response.DelegateResponse;
+import com.semuxpool.client.api.response.DelegatesResponse;
+import com.semuxpool.client.api.response.InfoResponse;
+import com.semuxpool.client.api.response.LongResponse;
+import com.semuxpool.client.api.response.PeersResponse;
+import com.semuxpool.client.api.response.SemuxResponse;
+import com.semuxpool.client.api.response.SignMessageResponse;
+import com.semuxpool.client.api.response.SignRawTransactionResponse;
+import com.semuxpool.client.api.response.StringResponse;
+import com.semuxpool.client.api.response.StringsResponse;
+import com.semuxpool.client.api.response.TransactionLimitsResponse;
+import com.semuxpool.client.api.response.TransactionResponse;
+import com.semuxpool.client.api.response.TransactionsResponse;
+import com.semuxpool.client.api.response.VerifyMessageResponse;
+import com.semuxpool.client.api.response.VotesResponse;
 import org.apache.commons.codec.binary.Hex;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.UsernamePasswordCredentials;
-import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.CredentialsProvider;
 import org.apache.http.client.ResponseHandler;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
+import org.apache.http.entity.ByteArrayEntity;
 import org.apache.http.impl.client.BasicCredentialsProvider;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
@@ -73,7 +89,7 @@ public class SemuxClient implements ISemuxClient {
 
     @Override
     public String signMessage(String address, String message) throws IOException, SemuxException {
-        return makePostRequest("sign-message?address=" + address + "&message=" + message, SignMessageResponse.class);
+        return makePostRequest("sign-message?address=" + address + "&message=" + message, SignMessageResponse.class, null);
     }
 
     @Override
@@ -89,7 +105,7 @@ public class SemuxClient implements ISemuxClient {
 
     @Override
     public void sendTransaction(String raw) throws IOException, SemuxException {
-        makePostRequest("transaction/raw?raw=" + raw, null);
+        makePostRequest("transaction/raw?raw=" + raw, null, null);
     }
 
     @Override
@@ -104,7 +120,7 @@ public class SemuxClient implements ISemuxClient {
 
     @Override
     public String createAccount() throws IOException, SemuxException {
-        return makePostRequest("account", StringResponse.class);
+        return makePostRequest("account", StringResponse.class, null);
     }
 
     @Override
@@ -144,7 +160,7 @@ public class SemuxClient implements ISemuxClient {
 
     @Override
     public void addNode(String node, int port) throws IOException, SemuxException {
-        makePostRequest("node?node=" + node + ":" + port, null);
+        makePostRequest("node?node=" + node + ":" + port, null, null);
     }
 
     @Override
@@ -195,24 +211,36 @@ public class SemuxClient implements ISemuxClient {
             if (data != null) {
                 url += "&data=" + Hex.encodeHexString(data);
             }
-            return makePostRequest(url, StringResponse.class);
+            return makePostRequest(url, StringResponse.class, null);
         }
     }
 
     @Override
     public String registerDelegate(String address, long fee, String delegateName) throws IOException, SemuxException {
         String hexDelegateName = Hex.encodeHexString(delegateName.getBytes());
-        return makePostRequest("transaction/delegate?from=" + address + "&fee=" + fee + "&data=" + hexDelegateName, StringResponse.class);
+        return makePostRequest("transaction/delegate?from=" + address + "&fee=" + fee + "&data=" + hexDelegateName, StringResponse.class, null);
     }
 
     @Override
     public String vote(String from, String to, long value, long fee) throws IOException, SemuxException {
-        return makePostRequest("transaction/vote?from=" + from + "&fee=" + fee + "&to=" + to + "&value=" + value, StringResponse.class);
+        return makePostRequest("transaction/vote?from=" + from + "&fee=" + fee + "&to=" + to + "&value=" + value, StringResponse.class, null);
     }
 
     @Override
     public String unvote(String from, String to, long value, long fee) throws IOException, SemuxException {
-        return makePostRequest("transaction/unvote?from=" + from + "&fee=" + fee + "&to=" + to + "&value=" + value, StringResponse.class);
+        return makePostRequest("transaction/unvote?from=" + from + "&fee=" + fee + "&to=" + to + "&value=" + value, StringResponse.class, null);
+    }
+
+    @Override
+    public String create(String from, long gasPrice, long gas, byte[] data) throws IOException, SemuxException {
+        String body = "data=" + Hex.encodeHexString(data);
+        return makePostRequest("transaction/create?from=" + from + "&value=0&gasPrice=" + gasPrice + "&gas=" + gas, StringResponse.class, body);
+    }
+
+    @Override
+    public String call(String from, String to, long gasPrice, long gas, byte[] data, boolean local) throws IOException, SemuxException {
+        String body = "data=" + Hex.encodeHexString(data);
+        return makePostRequest("transaction/call?local=" + local + "&from=" + from + "&to=" + to + "&value=0&gasPrice=" + gasPrice + "&gas=" + gas, StringResponse.class, body);
     }
 
     @Override
@@ -281,7 +309,7 @@ public class SemuxClient implements ISemuxClient {
     }
 
     private <T> T makeRequest(String path, Class<? extends SemuxResponse<T>> responseClass) throws IOException, SemuxException {
-        HttpGet httpGet = new HttpGet("http://" + host + ":" + port + "/v2.0.0/" + path);
+        HttpGet httpGet = new HttpGet("http://" + host + ":" + port + "/v2.2.0/" + path);
 
         logger.debug(httpGet.getURI().toString());
         ResponseHandler<String> responseHandler = new SimpleResponseHandler();
@@ -306,8 +334,12 @@ public class SemuxClient implements ISemuxClient {
     }
 
 
-    private <T> T makePostRequest(String path, Class<? extends SemuxResponse<T>> responseClass) throws IOException, SemuxException {
-        HttpPost httpPost = new HttpPost("http://" + host + ":" + port + "/v2.0.0/" + path);
+    private <T> T makePostRequest(String path, Class<? extends SemuxResponse<T>> responseClass, String body) throws IOException, SemuxException {
+        HttpPost httpPost = new HttpPost("http://" + host + ":" + port + "/v2.2.0/" + path);
+        if (body != null) {
+            HttpEntity entity = new ByteArrayEntity(body.getBytes());
+            httpPost.setEntity(entity);
+        }
 
         ResponseHandler<String> responseHandler = new SimpleResponseHandler();
         String responseString = httpclient.execute(httpPost, responseHandler);

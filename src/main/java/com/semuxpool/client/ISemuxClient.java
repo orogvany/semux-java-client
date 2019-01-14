@@ -84,4 +84,7 @@ public interface ISemuxClient
 
     TransactionLimits getTransactionLimits(String type) throws IOException, SemuxException;
 
+    String create(String from, long gasPrice, long gas, byte[] data) throws IOException, SemuxException;
+
+    String call(String from, String to, long gasPrice, long gas, byte[] data, boolean local) throws IOException, SemuxException;
 }
