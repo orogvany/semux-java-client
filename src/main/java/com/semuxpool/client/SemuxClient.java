@@ -116,7 +116,14 @@ public class SemuxClient implements ISemuxClient
     @Override
     public String sendTransaction(String raw) throws IOException, SemuxException
     {
-        return makePostRequest("transaction/raw?raw=" + raw, SignMessageResponse.class, null);
+        if (mockPayments)
+        {
+            logger.info("Skipping raw send  as we are in debug mode");
+            return "mockPayment";
+        } else
+        {
+            return makePostRequest("transaction/raw?raw=" + raw, SignMessageResponse.class, null);
+        }
     }
 
     @Override
@@ -130,7 +137,7 @@ public class SemuxClient implements ISemuxClient
 
         String fullRaw = Hex.encode0x(enc.toBytes());
 
-        return makePostRequest("transaction/raw?raw=" + fullRaw, SignMessageResponse.class, null);
+        return sendTransaction(fullRaw);
     }
 
     @Override
@@ -289,27 +296,55 @@ public class SemuxClient implements ISemuxClient
     @Override
     public String vote(String from, String to, long value, long fee) throws IOException, SemuxException
     {
-        return makePostRequest("transaction/vote?from=" + from + "&fee=" + fee + "&to=" + to + "&value=" + value, StringResponse.class, null);
+        if (mockPayments)
+        {
+            logger.info("Skipping vote to " + to + " as we are in debug mode");
+            return "mockPayment";
+        } else
+        {
+            return makePostRequest("transaction/vote?from=" + from + "&fee=" + fee + "&to=" + to + "&value=" + value, StringResponse.class, null);
+        }
     }
 
     @Override
     public String unvote(String from, String to, long value, long fee) throws IOException, SemuxException
     {
-        return makePostRequest("transaction/unvote?from=" + from + "&fee=" + fee + "&to=" + to + "&value=" + value, StringResponse.class, null);
+        if (mockPayments)
+        {
+            logger.info("Skipping unvote to " + to + " as we are in debug mode");
+            return "mockPayment";
+        } else
+        {
+            return makePostRequest("transaction/unvote?from=" + from + "&fee=" + fee + "&to=" + to + "&value=" + value, StringResponse.class, null);
+        }
     }
 
     @Override
     public String create(String from, long gasPrice, long gas, byte[] data) throws IOException, SemuxException
     {
-        String body = "data=" + Hex.encode0x(data);
-        return makePostRequest("transaction/create?from=" + from + "&value=0&gasPrice=" + gasPrice + "&gas=" + gas, StringResponse.class, body);
+        if (mockPayments)
+        {
+            logger.info("Skipping create from " + from + " as we are in debug mode");
+            return "mockPayment";
+        } else
+        {
+            String body = "data=" + Hex.encode0x(data);
+            return makePostRequest("transaction/create?from=" + from + "&value=0&gasPrice=" + gasPrice + "&gas=" + gas, StringResponse.class, body);
+        }
     }
 
     @Override
     public String call(String from, String to, long gasPrice, long gas, byte[] data, boolean local) throws IOException, SemuxException
     {
-        String body = "data=" + Hex.encode0x(data);
-        return makePostRequest("transaction/call?local=" + local + "&from=" + from + "&to=" + to + "&value=0&gasPrice=" + gasPrice + "&gas=" + gas, StringResponse.class, body);
+        if (mockPayments)
+        {
+            logger.info("Skipping call to " + to + " as we are in debug mode");
+            return "mockPayment";
+        } else
+        {
+            String body = "data=" + Hex.encode0x(data);
+            return makePostRequest("transaction/call?local=" + local + "&from=" + from + "&to=" + to + "&value=0&gasPrice=" + gasPrice + "&gas=" + gas, StringResponse.class, body);
+        }
     }
 
     @Override
