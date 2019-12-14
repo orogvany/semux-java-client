@@ -8,4 +8,9 @@ public class SemuxException extends Exception
     {
         super(message);
     }
+
+    public SemuxException(Exception e)
+    {
+        super(e.getMessage(), e);
+    }
 }

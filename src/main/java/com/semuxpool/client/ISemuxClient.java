@@ -1,18 +1,9 @@
 package com.semuxpool.client;
 
-import com.semuxpool.client.api.Account;
-import com.semuxpool.client.api.Block;
-import com.semuxpool.client.api.Delegate;
-import com.semuxpool.client.api.Info;
-import com.semuxpool.client.api.Peer;
-import com.semuxpool.client.api.SemuxException;
-import com.semuxpool.client.api.Transaction;
-import com.semuxpool.client.api.TransactionLimits;
-import com.semuxpool.client.api.response.SignMessageResponse;
-import com.semuxpool.client.api.response.SignRawTransactionResponse;
-import com.semuxpool.client.api.response.VerifyMessageResponse;
+import com.semuxpool.client.api.*;
 
 import java.io.IOException;
+import java.security.spec.InvalidKeySpecException;
 import java.util.List;
 import java.util.Map;
 
@@ -48,11 +39,15 @@ public interface ISemuxClient
 
     String signMessage(String address, String message) throws IOException, SemuxException;
 
+    String signMessageLocal(String privateKey, String message) throws SemuxException, InvalidKeySpecException;
+
     String verifyMessage(String address, String message, String signature) throws IOException, SemuxException;
 
-    void composeRawTransaction(String network, String type, long fee, int nonce, String to, long value, long timestamp, byte[] data) throws IOException, SemuxException;
+    String composeRawTransaction(String network, String type, long fee, long nonce, String to, long value, long timestamp, byte[] data) throws IOException, SemuxException;
 
     void sendTransaction(String raw) throws IOException, SemuxException;
+
+    void sendTransaction(String raw, String signature) throws IOException, SemuxException;
 
     Account getAccount(String address) throws IOException, SemuxException;
 
