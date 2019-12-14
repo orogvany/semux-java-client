@@ -49,7 +49,7 @@ public class SemuxClient implements ISemuxClient
         this.port = port;
 
         CredentialsProvider provider = new BasicCredentialsProvider();
-        if (user != null)
+        if (user != null && user.trim().length() > 0)
         {
             UsernamePasswordCredentials credentials = new UsernamePasswordCredentials(user, password);
             provider.setCredentials(AuthScope.ANY, credentials);
