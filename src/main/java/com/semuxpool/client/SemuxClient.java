@@ -114,13 +114,13 @@ public class SemuxClient implements ISemuxClient
     }
 
     @Override
-    public void sendTransaction(String raw) throws IOException, SemuxException
+    public String sendTransaction(String raw) throws IOException, SemuxException
     {
-        makePostRequest("transaction/raw?raw=" + raw, null, null);
+        return makePostRequest("transaction/raw?raw=" + raw, SignMessageResponse.class, null);
     }
 
     @Override
-    public void sendTransaction(String raw, String signature) throws IOException, SemuxException
+    public String sendTransaction(String raw, String signature) throws IOException, SemuxException
     {
         SimpleEncoder enc = new SimpleEncoder();
         byte[] rawBytes = Hex.decode0x(raw);
@@ -130,7 +130,7 @@ public class SemuxClient implements ISemuxClient
 
         String fullRaw = Hex.encode0x(enc.toBytes());
 
-        makePostRequest("transaction/raw?raw=" + fullRaw, null, null);
+        return makePostRequest("transaction/raw?raw=" + fullRaw, SignMessageResponse.class, null);
     }
 
     @Override
