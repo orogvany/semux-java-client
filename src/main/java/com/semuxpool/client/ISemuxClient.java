@@ -45,9 +45,9 @@ public interface ISemuxClient
 
     String composeRawTransaction(String network, String type, long fee, long nonce, String to, long value, long timestamp, byte[] data) throws IOException, SemuxException;
 
-    void sendTransaction(String raw) throws IOException, SemuxException;
+    String sendTransaction(String raw) throws IOException, SemuxException;
 
-    void sendTransaction(String raw, String signature) throws IOException, SemuxException;
+    String sendTransaction(String raw, String signature) throws IOException, SemuxException;
 
     Account getAccount(String address) throws IOException, SemuxException;
 

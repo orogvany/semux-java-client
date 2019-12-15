@@ -40,6 +40,9 @@ public class TestClient
             client.getPeers();
         }
 
+        client.getAccountTransactions(address, 0, Integer.MAX_VALUE);
+
+
         client.getBlock(blockHash);
         client.getBlock(1000000);
         client.getAccountTransactions(address, 1, 100);
